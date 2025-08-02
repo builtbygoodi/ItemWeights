@@ -1,0 +1,8 @@
+name: ItemWeights
+version: '1.0-SNAPSHOT'
+main: me.goodi.itemWeights.ItemWeights
+api-version: '1.21'
+commands:
+  reloadconfig:
+    description: "reload config"
+    permission: "ItemWeights.reload"
