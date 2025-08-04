@@ -3,6 +3,8 @@ package me.goodi.itemWeights;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.attribute.Attribute;
+import org.bukkit.block.BlockState;
+import org.bukkit.block.ShulkerBox;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -12,7 +14,9 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.BlockStateMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
@@ -56,7 +60,40 @@ public class WeightManager implements Listener {
 
         for (ItemStack item : player.getInventory()) {
             if (item == null || item.getType() == Material.AIR) continue;
+
+            if(item.getType().name().toUpperCase().contains("SHULKER_BOX")){
+
+                if (item.getItemMeta() instanceof BlockStateMeta) {
+                    BlockStateMeta meta = (BlockStateMeta) item.getItemMeta();
+                    BlockState state = meta.getBlockState();
+
+                    if (state instanceof ShulkerBox) {
+                        ShulkerBox box = (ShulkerBox) state;
+                        Inventory shulkerInv = box.getInventory();
+
+
+                        for (ItemStack containedItem : shulkerInv.getContents()) {
+                            if (containedItem == null || containedItem.getType() == Material.AIR) continue;
+                            weight += getItemWeight(containedItem.getType()) * containedItem.getAmount();
+
+                        }
+                    }
+                }
+            }
+
             weight += getItemWeight(item.getType()) * item.getAmount();
+
+        }
+
+        for (ItemStack item : player.getInventory().getArmorContents()) {
+            if (item == null || item.getType() == Material.AIR) continue;
+            weight += getItemWeight(item.getType()) * item.getAmount();
+        }
+
+        ItemStack offhandItem = player.getInventory().getItemInOffHand();
+
+        if(offhandItem.getType() != Material.AIR) {
+            weight += getItemWeight(offhandItem.getType());
         }
 
         if(!config.isWeightActive()){
@@ -180,7 +217,6 @@ public class WeightManager implements Listener {
         runTask(player);
     }
 
-
     @EventHandler
     public void onDrop(PlayerDropItemEvent e) {
         Player player = e.getPlayer();
@@ -209,5 +245,4 @@ public class WeightManager implements Listener {
             });
         }
     }
-
 }
